@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Masarak - Intelligent Triage System{% endblock %}
+
+{% block content %}
+<!-- Hero Section with Parallax -->
+<section class="hero-section position-relative overflow-hidden">
+    <div class="container">
+        <div class="row min-vh-100 align-items-center">
+            <div class="col-lg-6" data-aos="fade-right">
+                <span class="badge bg-primary bg-gradient mb-3 px-3 py-2 rounded-pill">
+                    <i class="fas fa-robot me-2"></i>AI-Powered Triage System
+                </span>
+                <h1 class="display-4 fw-bold mb-4">
+                    Welcome to <span class="text-primary">Masarak</span>
+                </h1>
+                <p class="lead text-muted mb-4">
+                    An intelligent pre-hospital triage system that uses advanced AI to help patients and medical staff make better decisions and save lives.
+                </p>
+                
+                <div class="stats d-flex mb-4">
+                    <div class="me-4">
+                        <h3 class="fw-bold mb-0">500+</h3>
+                        <small class="text-muted">Cases Processed</small>
+                    </div>
+                    <div class="me-4">
+                        <h3 class="fw-bold mb-0">98%</h3>
+                        <small class="text-muted">Accuracy</small>
+                    </div>
+                    <div>
+                        <h3 class="fw-bold mb-0">24/7</h3>
+                        <small class="text-muted">Support</small>
+                    </div>
+                </div>
+                
+                {% if not user.is_authenticated %}
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{% url 'accounts:register_patient' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Get Started
+                    </a>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                    </a>
+                </div>
+                {% else %}
+                <a href="{% url 'patients:new_case' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus-circle me-2"></i>Submit New Case
+                </a>
+            
+                {% endif %}
+            </div>
+            
+            <div class="col-lg-6" data-aos="fade-left">
+                <div class="hero-image text-center">
+                    <img src="../../static/images/hero-img.jpg" 
+                         class="img-fluid rounded-3 shadow-lg" 
+                         alt="Masarak Hero">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="badge bg-primary bg-gradient px-3 py-2 rounded-pill mb-3">
+                <i class="fas fa-crown me-2"></i>Features
+            </span>
+            <h2 class="display-5 fw-bold">Why Choose Masarak?</h2>
+            <p class="lead text-muted">Cutting-edge AI technology for better healthcare decisions</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-primary bg-gradient text-white mb-3">
+                            <i class="fas fa-microphone-alt fa-3x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Voice Analysis</h4>
+                        <p class="text-muted">Advanced NLP algorithms analyze voice descriptions to detect urgency indicators</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-success bg-gradient text-white mb-3">
+                            <i class="fas fa-camera-retro fa-3x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Image Recognition</h4>
+                        <p class="text-muted">Deep learning models analyze injury images for accurate severity assessment</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <div class="feature-icon bg-warning bg-gradient text-white mb-3">
+                            <i class="fas fa-chart-line fa-3x"></i>
+                        </div>
+                        <h4 class="fw-bold mb-3">Composite Score</h4>
+                        <p class="text-muted">Combine text and image analysis for a unified severity score</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works py-5">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="badge bg-primary bg-gradient px-3 py-2 rounded-pill mb-3">
+                <i class="fas fa-cogs me-2"></i>Process
+            </span>
+            <h2 class="display-5 fw-bold">How It Works</h2>
+            <p class="lead text-muted">Simple 4-step process for quick triage</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="100">
+                <div class="process-step text-center">
+                    <div class="step-number bg-primary text-white mx-auto mb-3">1</div>
+                    <h5 class="fw-bold mb-3">Submit Case</h5>
+                    <p class="text-muted">Describe symptoms using text, voice, or upload images</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="200">
+                <div class="process-step text-center">
+                    <div class="step-number bg-primary text-white mx-auto mb-3">2</div>
+                    <h5 class="fw-bold mb-3">AI Analysis</h5>
+                    <p class="text-muted">Our AI processes your data using advanced algorithms</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="300">
+                <div class="process-step text-center">
+                    <div class="step-number bg-primary text-white mx-auto mb-3">3</div>
+                    <h5 class="fw-bold mb-3">Get Triage</h5>
+                    <p class="text-muted">Receive immediate color-coded triage classification</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3" data-aos="fade-up" data-aos-delay="400">
+                <div class="process-step text-center">
+                    <div class="step-number bg-primary text-white mx-auto mb-3">4</div>
+                    <h5 class="fw-bold mb-3">Hospital Alert</h5>
+                    <p class="text-muted">Hospital receives your data and prepares resources</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Triage Levels Section -->
+<section class="triage-section py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5" data-aos="fade-up">
+            <span class="badge bg-primary bg-gradient px-3 py-2 rounded-pill mb-3">
+                <i class="fas fa-tag me-2"></i>Triage
+            </span>
+            <h2 class="display-5 fw-bold">Triage Levels</h2>
+            <p class="lead text-muted">Understanding your color-coded results</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4" data-aos="flip-left" data-aos-delay="100">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="triage-red p-4 text-center">
+                        <i class="fas fa-exclamation-triangle fa-4x mb-3"></i>
+                        <h3 class="fw-bold mb-0">RED</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold mb-3">Emergency</h5>
+                        <p class="text-muted">Immediate life-threatening condition requiring urgent care</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-danger me-2"></i>Cardiac arrest</li>
+                            <li class="mb-2"><i class="fas fa-check text-danger me-2"></i>Severe bleeding</li>
+                            <li class="mb-2"><i class="fas fa-check text-danger me-2"></i>Unconscious</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4" data-aos="flip-left" data-aos-delay="200">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="triage-yellow p-4 text-center">
+                        <i class="fas fa-clock fa-4x mb-3"></i>
+                        <h3 class="fw-bold mb-0">YELLOW</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold mb-3">Urgent</h5>
+                        <p class="text-muted">Serious condition requiring prompt attention</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Fractures</li>
+                            <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>Moderate burns</li>
+                            <li class="mb-2"><i class="fas fa-check text-warning me-2"></i>High fever</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4" data-aos="flip-left" data-aos-delay="300">
+                <div class="card border-0 shadow-lg overflow-hidden">
+                    <div class="triage-green p-4 text-center">
+                        <i class="fas fa-check-circle fa-4x mb-3"></i>
+                        <h3 class="fw-bold mb-0">GREEN</h3>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold mb-3">Non-urgent</h5>
+                        <p class="text-muted">Minor condition that can wait for regular care</p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Minor cuts</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Cold symptoms</li>
+                            <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Routine checkups</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-gradient-primary text-white">
+    <div class="container text-center py-5">
+        <h2 class="display-5 fw-bold mb-4" data-aos="fade-up">Ready to Get Started?</h2>
+        <p class="lead mb-4" data-aos="fade-up" data-aos-delay="100">
+            Join Masarak today and experience the future of emergency triage
+        </p>
+        <div data-aos="fade-up" data-aos-delay="200">
+            <a href="{% url 'accounts:register_patient' %}" class="btn btn-light btn-lg rounded-pill px-5">
+                <i class="fas fa-user-plus me-2"></i>Register Now
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

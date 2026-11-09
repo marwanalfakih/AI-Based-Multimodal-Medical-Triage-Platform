@@ -1,0 +1,7 @@
+
+path: C:\Users\marwa\Desktop\Django projects\masarak\ai_analysis\dataset
+train: train
+val: val
+test: test
+nc: 8
+names: ['injuries', 'burns', 'abrasions', 'bruises', 'lacerations', 'cuts', 'stab_wounds', 'ingrown_nails']

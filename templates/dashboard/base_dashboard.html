@@ -1,0 +1,429 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Doctor Dashboard - Masarak{% endblock %}</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        body {
+            background-color: #f4f7fc;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .doctor-sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background: linear-gradient(135deg, #1e2b3a, #2c3e50);
+            color: white;
+            z-index: 1000;
+            overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar-header {
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .doctor-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #fff;
+        }
+        
+        .doctor-avatar i {
+            font-size: 50px;
+            color: #fff;
+        }
+        
+        .doctor-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .doctor-title {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 15px;
+        }
+        
+        .sidebar-nav {
+            padding: 20px 15px;
+        }
+        
+        .nav-item {
+            list-style: none;
+            margin-bottom: 5px;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link i {
+            width: 25px;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .nav-link.active {
+            background: #3498db;
+            color: white;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .nav-link.active i {
+            color: white;
+        }
+        
+        .nav-badge {
+            margin-left: auto;
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .sidebar-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.1);
+            margin: 20px 0;
+        }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            padding: 30px;
+            min-height: 100vh;
+            background: #f4f7fc;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0;
+        }
+        
+        .page-title i {
+            color: #3498db;
+            margin-right: 10px;
+        }
+        
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .notification-badge {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .notification-badge i {
+            font-size: 20px;
+            color: #7f8c8d;
+        }
+        
+        .badge-count {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #e74c3c;
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 10px;
+        }
+        
+        .doctor-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .profile-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #3498db;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .profile-info {
+            display: none;
+        }
+        
+        @media (min-width: 768px) {
+            .profile-info {
+                display: block;
+                line-height: 1.2;
+            }
+            
+            .profile-info .name {
+                font-weight: 600;
+                color: #2c3e50;
+            }
+            
+            .profile-info .role {
+                font-size: 12px;
+                color: #7f8c8d;
+            }
+        }
+        
+        /* Stats Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .doctor-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .doctor-sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .top-bar {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="doctor-sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="doctor-avatar">
+                <i class="fas fa-user-md"></i>
+            </div>
+            <div class="doctor-name">Dr. {{ user.get_full_name|default:user.username }}</div>
+            <div class="doctor-title">{{ user.specialization|default:"General Practitioner" }}</div>
+        </div>
+        
+        <div class="sidebar-nav">
+            <ul style="padding: 0;">
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:incoming_cases' %}" class="nav-link {% if request.resolver_match.url_name == 'incoming_cases' %}active{% endif %}">
+                        <i class="fas fa-inbox"></i>
+                        <span>Incoming Cases</span>
+                        {% if incoming_count > 0 %}
+                        <span class="nav-badge">{{ incoming_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:reviewed_cases' %}" class="nav-link {% if request.resolver_match.url_name == 'reviewed_cases' %}active{% endif %}">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Reviewed</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:appointments' %}" class="nav-link {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Appointments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:patients_list' %}" class="nav-link {% if request.resolver_match.url_name == 'patients_list' %}active{% endif %}">
+                        <i class="fas fa-users"></i>
+                        <span>My Patients</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'dashboard:stats' %}" class="nav-link {% if request.resolver_match.url_name == 'stats' %}active{% endif %}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Statistics</span>
+                    </a>
+                </li>
+                
+                <div class="sidebar-divider"></div>
+                
+                <li class="nav-item">
+                    <a href="{% url 'accounts:doctor_profile' %}" class="nav-link">
+                        <i class="fas fa-user-cog"></i>
+                        <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'accounts:logout' %}" class="nav-link text-danger">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <h1 class="page-title">
+                <i class="{% block page_icon %}fas fa-home{% endblock %}"></i>
+                {% block page_title %}Dashboard{% endblock %}
+            </h1>
+            
+            <div class="top-bar-actions">
+                <div class="notification-badge">
+                    <i class="far fa-bell"></i>
+                    {% if unread_notifications > 0 %}
+                    <span class="badge-count">{{ unread_notifications }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="doctor-profile">
+                    <div class="profile-img">
+                        {{ user.first_name|first|default:user.username|first|upper }}
+                    </div>
+                    <div class="profile-info">
+                        <div class="name">{{ user.get_full_name|default:user.username }}</div>
+                        <div class="role">{{ user.user_type|title }}</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline-secondary d-md-none" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Content Block -->
+        {% block dashboard_content %}{% endblock %}
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('show');
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.btn-outline-secondary');
+            
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

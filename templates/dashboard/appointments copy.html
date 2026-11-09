@@ -1,0 +1,407 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block page_icon %}fas fa-calendar-check{% endblock %}
+{% block page_title %}Appointments Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="fw-bold">
+                    <i class="fas fa-calendar-check text-primary me-2"></i>
+                    Appointments
+                </h2>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary rounded-pill" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Date Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="?date={{ prev_date|date:'Y-m-d' }}&status={{ status_filter }}"
+                                class="btn btn-outline-primary rounded-pill">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                            <h5 class="fw-bold mb-0 mx-3">
+                                <i class="fas fa-calendar me-2 text-primary"></i>
+                                {{ filter_date|date:"l, F d, Y" }}
+                            </h5>
+                            <a href="?date={{ next_date|date:'Y-m-d' }}&status={{ status_filter }}"
+                                class="btn btn-outline-primary rounded-pill">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+
+                        <div class="d-flex gap-3">
+                            <a href="?date={{ today|date:'Y-m-d' }}" class="btn btn-primary rounded-pill">
+                                <i class="fas fa-calendar-day me-2"></i>Today
+                            </a>
+
+
+
+                            <select id="statusFilter" class="form-select form-select-sm w-auto rounded-pill">
+                                <!--<option value="all" {% if status_filter=='all' %}selected{% endif %}>
+                                    All Status
+                                </option>-->
+                                <option value="pending" {% if status_filter=='pending' %}selected{% endif %}>
+                                    Pending
+                                </option>
+                                <option value="confirmed" {% if status_filter=='confirmed' %}selected{% endif %}>
+                                    Confirmed
+                                </option>
+                                <option value="completed" {% if status_filter=='completed' %}selected{% endif %}>
+                                    Completed
+                                </option>
+                                <option value="cancelled" {% if status_filter=='cancelled' %}selected{% endif %}>
+                                    Cancelled
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            Appointments for {{ filter_date|date:"F d, Y" }}
+                        </h5>
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            Total: {{ appointments|length }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    {% if appointments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Patient</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for apt in appointments %}
+                                <tr>
+                                    <td>
+                                        <span class="fw-semibold">{{ apt.appointment_date|date:"g:i A" }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-2">
+                                                <i class="fas fa-user text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold d-block">{{
+                                                    apt.patient.get_full_name|default:apt.patient.username }}</span>
+                                                <small class="text-muted">ID: {{ apt.patient.id }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info bg-opacity-10 text-info rounded-pill px-3 py-2">
+                                            {{ apt.get_appointment_type_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge status-badge status-{{ apt.status }} rounded-pill px-3 py-2">
+                                            {{ apt.status|title }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if apt.notes %}
+                                        <span class="text-truncate d-inline-block" style="max-width: 150px;"
+                                            data-bs-toggle="tooltip" title="{{ apt.notes }}">
+                                            {{ apt.notes|truncatechars:30 }}
+                                        </span>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-primary rounded-pill dropdown-toggle"
+                                                data-bs-toggle="dropdown">
+                                                Update <i class="fas fa-chevron-down ms-1"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a class="dropdown-item {% if apt.status == 'confirmed' %}disabled{% endif %}"
+                                                        href="#" onclick="updateStatus({{ apt.id }}, 'confirmed')">
+                                                        <i class="fas fa-check-circle text-success me-2"></i>Confirm
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item {% if apt.status == 'completed' %}disabled{% endif %}"
+                                                        href="#" onclick="updateStatus({{ apt.id }}, 'completed')">
+                                                        <i class="fas fa-check-double text-info me-2"></i>Complete
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <hr class="dropdown-divider">
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item {% if apt.status == 'cancelled' %}disabled{% endif %} text-danger"
+                                                        href="#" onclick="updateStatus({{ apt.id }}, 'cancelled')">
+                                                        <i class="fas fa-times-circle text-danger me-2"></i>Cancel
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                            <a href="{% url 'dashboard:patient_history' apt.patient.id %}"
+                                                class="btn btn-sm btn-outline-secondary rounded-pill ms-2">
+                                                <i class="fas fa-history"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-calendar-times fa-4x text-muted opacity-25"></i>
+                        </div>
+                        <h5 class="fw-bold mb-2">No Appointments Found</h5>
+                        <p class="text-muted mb-4">
+                            There are no appointments scheduled for {{ filter_date|date:"F d, Y" }}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    {% if appointments %}
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm bg-primary text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-clock fa-2x me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Total</h6>
+                            <h3 class="fw-bold mb-0">{{ appointments|length }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm bg-warning">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-hourglass-half fa-2x me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Pending</h6>
+                            <h3 class="fw-bold mb-0">{{ pending_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm bg-success text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Confirmed</h6>
+                            <h3 class="fw-bold mb-0">{{ confirmed_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 rounded-4 shadow-sm bg-info text-white">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-double fa-2x me-3"></i>
+                        <div>
+                            <h6 class="fw-bold mb-1">Completed</h6>
+                            <h3 class="fw-bold mb-0">{{ completed_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function updateStatus(appointmentId, newStatus) {
+        if (!confirm(`Are you sure you want to mark this appointment as ${newStatus}?`)) {
+            return;
+        }
+
+        const csrftoken = getCookie('csrftoken');
+
+        fetch(`/dashboard/appointments/${appointmentId}/update-status/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Appointment status updated successfully!');
+                    window.location.reload();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Network error. Please try again.\n' + error);
+            });
+    }
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Bootstrap Tooltips
+        const tooltipTriggerList =
+            [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+
+        // Status Filter
+        const statusFilter =
+            document.getElementById('statusFilter');
+
+        if (statusFilter) {
+
+            statusFilter.addEventListener('change', function () {
+
+                const selectedStatus = this.value;
+
+                const currentDate =
+                    "{{ filter_date|date:'Y-m-d' }}";
+
+                window.location.href =
+                    `?date=${currentDate}&status=${selectedStatus}`;
+
+            });
+
+        }
+
+    });
+</script>
+{% endblock %}
+
+<style>
+    .status-badge {
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+    .status-pending {
+        background: rgba(241, 196, 15, 0.1);
+        color: #f39c12;
+    }
+
+    .status-confirmed {
+        background: rgba(46, 204, 113, 0.1);
+        color: #27ae60;
+    }
+
+    .status-completed {
+        background: rgba(52, 152, 219, 0.1);
+        color: #2980b9;
+    }
+
+    .status-cancelled {
+        background: rgba(231, 76, 60, 0.1);
+        color: #c0392b;
+    }
+
+    .btn-group .dropdown-toggle {
+        border-top-right-radius: 50px !important;
+        border-bottom-right-radius: 50px !important;
+    }
+
+    .dropdown-item {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
+
+    .dropdown-item i {
+        width: 20px;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    @media (max-width: 768px) {
+        .table {
+            font-size: 14px;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn-group .btn {
+            border-radius: 50px !important;
+            margin-bottom: 5px;
+        }
+    }
+</style>
+{% endblock %}

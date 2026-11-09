@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Case Details - Masarak{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'patients:my_cases' %}" class="btn btn-outline-secondary rounded-pill">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Cases
+                </a>
+                <span class="badge {% if case.is_processed %}bg-success{% else %}bg-warning{% endif %} fs-6 p-3">
+                    {% if case.is_processed %}✓ Processed{% else %}⏳ Pending{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Patient Information -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-user-circle text-primary me-2"></i>Case Information
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Case ID</small>
+                        <span class="fw-bold">#{{ case.id }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Submitted</small>
+                        <span>{{ case.created_at|date:"F d, Y - g:i A" }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Last Updated</small>
+                        <span>{{ case.updated_at|date:"F d, Y - g:i A" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+          <!-- Triage Result -->
+        {% if triage_result %}
+            <div class="col-lg-8 mb-4">
+                <div class="card border-0 rounded-4 shadow-sm">
+                    <div class="card-header {% if triage_result.suggested_level == 'red' %}bg-danger{% elif triage_result.suggested_level == 'yellow' %}bg-warning{% else %}bg-success{% endif %} text-white py-3">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Triage Result
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row text-center">
+                            {% if case.text_description or case.voice_recording %}
+                            <div class="col-md-4">
+                                <h6 class="text-muted">NLP Score</h6>
+                                <h2 class="fw-bold">{{ triage_result.nlp_score|floatformat:0 }}%</h2>
+                                <div class="progress">
+                                    <div class="progress-bar bg-primary" style="width: {{ triage_result.nlp_score }}%"></div>
+                                </div>                        
+                                {% if case.voice_recording and not case.text_description %}
+                                <small class="text-muted">From voice recording</small>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <div class="col-md-4">
+                                <h6 class="text-muted">NLP Score</h6>
+                                <h2 class="fw-bold text-muted">—</h2>
+                                <p class="small text-muted">No text or voice input</p>
+                            </div>
+                            {% endif %}
+                            {% if images %}
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Vision Score</h6>
+                                <h2 class="fw-bold">{{ triage_result.vision_score|floatformat:0 }}%</h2>
+                                <div class="progress">
+                                    <div class="progress-bar bg-info" style="width: {{ triage_result.vision_score }}%"></div>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Vision Score</h6>
+                                <h2 class="fw-bold text-muted">—</h2>
+                                <p class="small text-muted">No images uploaded</p>
+                            </div>
+                            {% endif %}
+                            <div class="col-md-4">
+                                <h6 class="text-muted">Composite Score</h6>
+                                <h2 class="fw-bold {% if triage_result.composite_score >= 70 %}text-danger{% elif triage_result.composite_score >= 40 %}text-warning{% else %}text-success{% endif %}">
+                                    {{ triage_result.composite_score|floatformat:0 }}%
+                                </h2>
+                                <div class="progress">
+                                    <div class="progress-bar {% if triage_result.composite_score >= 70 %}bg-danger{% elif triage_result.composite_score >= 40 %}bg-warning{% else %}bg-success{% endif %}" 
+                                        style="width: {{ triage_result.composite_score }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert {% if triage_result.suggested_level == 'red' %}alert-danger{% elif triage_result.suggested_level == 'yellow' %}alert-warning{% else %}alert-success{% endif %} mt-4 text-center">
+                            <i class="fas {% if triage_result.suggested_level == 'red' %}fa-exclamation-triangle{% elif triage_result.suggested_level == 'yellow' %}fa-clock{% else %}fa-check-circle{% endif %} fa-2x mb-2"></i>
+                            <h4 class="fw-bold">
+                                {% if triage_result.suggested_level == 'red' %}
+                                    🔴 Emergency - Seek Immediate Care
+                                {% elif triage_result.suggested_level == 'yellow' %}
+                                    🟡 Urgent - Seek Care Within Hours
+                                {% else %}
+                                    🟢 Non-Urgent - Schedule Regular Appointment
+                                {% endif %}
+                            </h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ============================================================ -->
+    
+    <!-- 🔥 AI Vision Results - Heatmap and Predictions -->
+    {% if images %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-brain me-2"></i>AI Vision Analysis (MaxViT)
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+
+                        <!-- Uploaded and Heatmap Image -->
+                        <div class="col-md-3">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-images text-danger me-2"></i>Uploaded Images ({{ images.count }})
+                            </h6>
+                            {% for image in images %}
+                                <img src="{{ image.image.url }}"  alt="Case image" class="img-fluid rounded-3 mb-2" style="height: 220px; width: 90%; object-fit: cover;">
+                                    <a href="{{ image.image.url }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        <i class="fas fa-eye me-1"></i>View
+                                    </a>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Heatmap Image -->
+                        <div class="col-md-3">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-fire text-danger me-2"></i>Grad-CAM Heatmap
+                            </h6>
+                            {% if triage_result.vision_explanation.heatmap %} 
+                                <img src="{{ triage_result.vision_explanation.heatmap }}" class="img-fluid rounded-3 shadow-sm" alt="AI Heatmap">
+                                <small class="text-muted d-block mt-2">
+                                    The highlighted area shows where the AI focused to make its decision
+                                </small>
+                            {% else %}
+                                <div class="bg-light rounded-4 p-5 text-center">
+                                    <i class="fas fa-chart-line fa-3x text-muted mb-2"></i>
+                                    <p class="text-muted mb-0">Heatmap not available</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Predictions Table -->
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-chart-bar text-success me-2"></i>Model Predictions
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Injury Type</th>
+                                            <th>Confidence</th>
+                                            <th>Progress</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if triage_result.vision_explanation.all_predictions %}
+                                            {% for label, percent in triage_result.vision_explanation.all_predictions.items %}
+
+                                            <tr>
+                                                <td>
+                                                    {% if "Burns" in label %} 
+                                                    {% elif "Stab" in label %} 
+                                                    {% elif "Laceration" in label %} 
+                                                    {% elif "Cut" in label %} 
+                                                    {% elif "Abrasions" in label %} 
+                                                    {% elif "Bruises" in label %} 
+                                                    {% endif %}
+                                                    {{ label }}
+                                                </td>
+                                                <td class="fw-bold">{{ percent }}%</td>
+                                                <td style="width: 200px;">
+                                                    <div class="progress" style="height: 8px;">
+                                                        <div class="progress-bar {% if percent > 70 %}bg-danger{% elif percent > 40 %}bg-warning{% else %}bg-success{% endif %}" 
+                                                             style="width: {{ percent }}%"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% elif triage_result.vision_score %}
+                                            <tr>
+                                                <td colspan="3" class="text-center">
+                                                    <span class="badge bg-primary rounded-pill px-3 py-2">
+                                                        Primary: {{ triage_result.vision_injury|default:"Unknown" }}
+                                                    </span>
+                                                    <span class="badge bg-secondary rounded-pill px-3 py-2 ms-2">
+                                                        Score: {{ triage_result.vision_score|floatformat:0 }}%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">
+                                                    No vision analysis available
+                                                </td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Explanation Text -->
+                            {% if triage_result.vision_explanation %}
+                            <div class="alert alert-info mt-3 rounded-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {{ triage_result.vision_explanation.explanation_text }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- ============================================================ -->
+    <!-- نهاية قسم AI Vision Results -->
+    <!-- ============================================================ -->
+
+    <!-- Voice Recording -->
+    {% if case.voice_recording %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-microphone text-primary me-2"></i>Voice Recording
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <audio controls class="w-100">
+                        <source src="{{ case.voice_recording.url }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+
+    <!-- ============================================================ -->
+    <!-- 🔴 🔴 🔴 أضف هذا القسم هنا (بعد Images) 🔴 🔴 🔴 -->
+    <!-- ============================================================ -->
+    
+    <!-- 📝 Clinical NLP Results -->
+    {% if triage_result.nlp_explanation and case.text_description or case.voice_recording %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-header bg-gradient-primary text-white py-3">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-notes-medical text-primary me-2"></i>Clinical Text Analysis (NLP)
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <!-- Symptoms with Status -->
+                        <div class="col-md-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-stethoscope text-primary me-2"></i>Symptoms Description
+                            </h6>
+                            <div class="bg-light rounded-4 p-3">
+                                <p class="mb-0">{{ case.text_description|default:"No description provided."  }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Symptoms with Status -->
+                        <div class="col-md-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-stethoscope text-primary me-2"></i>Detected Symptoms
+                            </h6>
+                            {% if triage_result.nlp_explanation.symptoms %}
+                                <div class="list-group">
+                                    {% for symptom in triage_result.nlp_explanation.symptoms %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span>{{ symptom.symptom|capfirst }}</span>
+                                        <span class="badge {% if symptom.is_present %}bg-success{% else %}bg-secondary{% endif %} rounded-pill">
+                                            {{ symptom.status }}
+                                        </span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No symptoms detected</p>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Medications & Injuries -->
+                        <div class="col-md-4">
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-pills text-primary me-2"></i>Medications
+                            </h6>
+                            {% if triage_result.nlp_explanation.medications %}
+                                <div class="d-flex flex-wrap gap-2 mb-4">
+                                    {% for med in triage_result.nlp_explanation.medications %}
+                                    <span class="badge bg-info rounded-pill px-3 py-2">
+                                        <i class="fas fa-capsules me-1"></i>{{ med }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-4">No medications detected</p>
+                            {% endif %}
+                            
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-ambulance text-danger me-2"></i>Detected Injuries
+                            </h6>
+                            {% if triage_result.nlp_explanation.injuries %}
+                                <div class="d-flex flex-wrap gap-2">
+                                    {% for injury in triage_result.nlp_explanation.injuries %}
+                                    <span class="badge bg-danger rounded-pill px-3 py-2">
+                                        {{ injury }}
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No specific injuries detected</p>
+                            {% endif %}
+                            
+                            <!-- Timing Info -->
+                            {% if triage_result.nlp_explanation.timing %}
+                            <hr>
+                            <h6 class="fw-bold mb-3">
+                                <i class="fas fa-clock text-primary me-2"></i>Timing Information
+                            </h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for time in triage_result.nlp_explanation.timing %}
+                                <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                    <i class="fas fa-calendar me-1"></i>{{ time }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Summary -->
+                    {% if triage_result.nlp_explanation.summary %}
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-2">
+                            <i class="fas fa-robot text-primary me-2"></i>AI Summary
+                        </h6>
+                        <div class="bg-light rounded-4 p-3">
+                            <p class="mb-0">{{ triage_result.nlp_explanation.summary }}</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- ============================================================ -->
+    <!-- نهاية قسم Clinical NLP Results -->
+    <!-- ============================================================ -->
+
+    <!-- Action Buttons -->
+    {% if not case.is_processed %}
+    <div class="row">
+        <div class="col-12 text-center">
+            <div class="btn-group">
+                <a href="{% url 'patients:edit_case' case.id %}" class="btn btn-warning rounded-pill px-4 me-2">
+                    <i class="fas fa-edit me-2"></i>Edit Case
+                </a>
+                <a href="{% url 'patients:delete_case' case.id %}" class="btn btn-danger rounded-pill px-4">
+                    <i class="fas fa-trash me-2"></i>Delete Case
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.image-card {
+    transition: transform 0.2s ease;
+}
+.image-card:hover {
+    transform: translateY(-3px);
+}
+.progress {
+    height: 8px;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}

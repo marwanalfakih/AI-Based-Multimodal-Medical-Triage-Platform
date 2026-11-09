@@ -1,0 +1,431 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block page_icon %}fas fa-user-md{% endblock %}
+{% block page_title %}Doctor Profile{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Main Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <!-- Doctor Avatar -->
+                    <div class="position-relative d-inline-block mb-4">
+                        <div class="doctor-avatar-large mx-auto">
+                            {% if user.profile_picture %}
+                                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}" class="rounded-circle w-100 h-100 object-fit-cover">
+                            {% else %}
+                                <div class="avatar-initials">
+                                    {{ user.first_name|first|default:user.username|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <button class="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0" 
+                                onclick="alert('Profile picture upload coming soon!')">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                    
+                    <h4 class="fw-bold mb-1">Dr. {{ user.get_full_name|default:user.username }}</h4>
+                    <p class="text-primary mb-2">{{ user.specialization|default:"General Practitioner" }}</p>
+                    
+                    <!-- Quick Stats -->
+                    <div class="d-flex justify-content-center gap-4 mb-4">
+                        <div class="text-center">
+                            <h5 class="fw-bold mb-0">{{ total_cases|default:"0" }}</h5>
+                            <small class="text-muted">Cases</small>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center">
+                            <h5 class="fw-bold mb-0">{{ total_patients|default:"0" }}</h5>
+                            <small class="text-muted">Patients</small>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center">
+                            <h5 class="fw-bold mb-0">{{ years_exp|default:"5" }}</h5>
+                            <small class="text-muted">Years Exp</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Info -->
+                    <div class="text-start bg-light rounded-4 p-3 mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-circle bg-primary bg-opacity-10 me-3">
+                                <i class="fas fa-envelope text-primary"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Email</small>
+                                <span class="fw-semibold">{{ user.email }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-circle bg-success bg-opacity-10 me-3">
+                                <i class="fas fa-phone text-success"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Phone</small>
+                                <span class="fw-semibold">{{ user.phone_number|default:"Not provided" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex align-items-center">
+                            <div class="icon-circle bg-info bg-opacity-10 me-3">
+                                <i class="fas fa-map-marker-alt text-info"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Location</small>
+                                <span class="fw-semibold">{{ user.location|default:"Not specified" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary rounded-pill" onclick="editProfile()">
+                            <i class="fas fa-edit me-2"></i>Edit Profile
+                        </button>
+                        <button class="btn btn-outline-primary rounded-pill" onclick="changePassword()">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column -->
+        <div class="col-lg-8">
+            <!-- About Section -->
+            <div class="card border-0 rounded-4 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        About
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="mb-0">{{ user.bio|default:"No bio provided. Click edit profile to add information about yourself, your specialties, and experience." }}</p>
+                </div>
+            </div>
+            
+            <!-- Work Schedule -->
+            <div class="card border-0 rounded-4 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            Work Schedule
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="editSchedule()">
+                            <i class="fas fa-edit me-2"></i>Edit
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td>Monday</td>
+                                    <td class="fw-semibold">{{ schedule.monday|default:"9:00 AM - 5:00 PM" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Tuesday</td>
+                                    <td class="fw-semibold">{{ schedule.tuesday|default:"9:00 AM - 5:00 PM" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Wednesday</td>
+                                    <td class="fw-semibold">{{ schedule.wednesday|default:"9:00 AM - 5:00 PM" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Thursday</td>
+                                    <td class="fw-semibold">{{ schedule.thursday|default:"9:00 AM - 5:00 PM" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td>Friday</td>
+                                    <td class="fw-semibold">{{ schedule.friday|default:"9:00 AM - 1:00 PM" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Saturday</td>
+                                    <td class="fw-semibold">{{ schedule.saturday|default:"Closed" }}</td>
+                                </tr>
+                                <tr>
+                                    <td>Sunday</td>
+                                    <td class="fw-semibold">{{ schedule.sunday|default:"Closed" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-header bg-white border-0 pt-4 px-4">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-history text-primary me-2"></i>
+                        Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="timeline">
+                        {% for activity in recent_activities %}
+                        <div class="timeline-item mb-3">
+                            <div class="timeline-marker bg-{{ activity.color }}"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <span class="fw-semibold">{{ activity.title }}</span>
+                                        <p class="text-muted small mb-0">{{ activity.description }}</p>
+                                    </div>
+                                    <small class="text-muted">{{ activity.time }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted opacity-25 mb-3"></i>
+                            <p class="text-muted">No recent activity</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="profileForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">First Name</label>
+                            <input type="text" class="form-control" value="{{ user.first_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Last Name</label>
+                            <input type="text" class="form-control" value="{{ user.last_name }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control" value="{{ user.email }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Phone</label>
+                            <input type="tel" class="form-control" value="{{ user.phone_number }}">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold">Specialization</label>
+                            <input type="text" class="form-control" value="{{ user.specialization }}">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold">Location</label>
+                            <input type="text" class="form-control" value="{{ user.location }}">
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-semibold">Bio</label>
+                            <textarea class="form-control" rows="4">{{ user.bio }}</textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill" onclick="saveProfile()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content rounded-4">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fas fa-key me-2"></i>Change Password</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="passwordForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Current Password</label>
+                        <input type="password" class="form-control" id="current_password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">New Password</label>
+                        <input type="password" class="form-control" id="new_password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirm_password">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill" onclick="changePasswordSubmit()">Update Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editProfile() {
+    new bootstrap.Modal(document.getElementById('editProfileModal')).show();
+}
+
+function changePassword() {
+    new bootstrap.Modal(document.getElementById('changePasswordModal')).show();
+}
+
+function saveProfile() {
+    alert('Profile update feature coming soon!');
+    bootstrap.Modal.getInstance(document.getElementById('editProfileModal')).hide();
+}
+
+function changePasswordSubmit() {
+    const newPass = document.getElementById('new_password').value;
+    const confirmPass = document.getElementById('confirm_password').value;
+    
+    if (newPass !== confirmPass) {
+        alert('Passwords do not match!');
+        return;
+    }
+    
+    alert('Password change feature coming soon!');
+    bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+}
+
+function editSchedule() {
+    alert('Schedule edit feature coming soon!');
+}
+</script>
+
+<style>
+.doctor-avatar-large {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 64px;
+    font-weight: 600;
+    box-shadow: 0 15px 30px rgba(52, 152, 219, 0.3);
+}
+
+.avatar-initials {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3498db, #2c3e50);
+    border-radius: 50%;
+    color: white;
+    font-size: 64px;
+    font-weight: 600;
+}
+
+.icon-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -30px;
+    top: 5px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px currentColor;
+}
+
+.timeline-marker.bg-primary { box-shadow: 0 0 0 2px #3498db; }
+.timeline-marker.bg-success { box-shadow: 0 0 0 2px #2ecc71; }
+.timeline-marker.bg-warning { box-shadow: 0 0 0 2px #f1c40f; }
+
+.timeline-content {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 12px 15px;
+    transition: all 0.2s ease;
+}
+
+.timeline-content:hover {
+    background: white;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.table-borderless td {
+    padding: 8px 0;
+    border: none;
+}
+
+.modal-content {
+    border: none;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+@media (max-width: 768px) {
+    .doctor-avatar-large {
+        width: 120px;
+        height: 120px;
+        font-size: 48px;
+    }
+    
+    .avatar-initials {
+        font-size: 48px;
+    }
+}
+</style>
+{% endblock %}

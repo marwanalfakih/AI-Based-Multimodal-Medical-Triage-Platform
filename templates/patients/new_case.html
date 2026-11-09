@@ -1,0 +1,376 @@
+<!-- templates/patients/new_case.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}New Case - Masarak{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card border-0 rounded-4 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white text-center py-4 rounded-top-4">
+                    <h4 class="fw-bold mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Submit New Case
+                    </h4>
+                    <p class="text-white-50 mb-0 mt-2">Please provide as much detail as possible</p>
+                </div>
+                
+                <div class="card-body p-4">
+                    <!-- Info Alert -->
+                    <div class="alert alert-info rounded-4 mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle fa-2x me-3 text-primary"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">📌 Any input is enough!</h6>
+                                <p class="mb-0 small">
+                                    You can submit your case using <strong>text description</strong>, <strong>images</strong>, 
+                                    or <strong>voice recording</strong> - just one is sufficient. Choose what's easiest for you.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data" id="caseForm">
+                        {% csrf_token %}
+                        
+                        <!-- Description Field -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-edit me-2 text-primary"></i>Symptoms Description (Optional)
+                            </label>
+                            {{ form.text_description }}
+                            {% if form.text_description.errors %}
+                                <div class="text-danger mt-2">
+                                    {{ form.text_description.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">{{ form.text_description.help_text }}</small>
+                        </div>
+                        
+                        <!-- Images Upload -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-image me-2 text-primary"></i>Images (Optional - You can select multiple)
+                            </label>
+                            
+                            <input type="file" 
+                                   name="images" 
+                                   id="imageInput" 
+                                   class="form-control" 
+                                   accept="image/*" 
+                                   multiple>
+                            
+                            <div class="image-previews row g-2 mt-3" id="imagePreviews"></div>
+                            
+                            <small class="text-muted">You can select multiple images (JPG, PNG, GIF, BMP - Max 5MB each)</small>
+                        </div>
+                        
+                        <!-- Voice Recording - NEW VERSION WITH LIVE RECORDING -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-microphone me-2 text-primary"></i>Voice Recording (Optional)
+                            </label>
+                            
+                            <!-- Voice Recording Interface -->
+                            <div class="voice-recording-container bg-light rounded-4 p-4 text-center">
+                                <div id="recordingControls">
+                                    <button type="button" id="startRecordBtn" class="btn btn-danger rounded-pill px-5 py-3 mb-3">
+                                        <i class="fas fa-microphone me-2"></i>Start Recording
+                                    </button>
+                                    
+                                    <div id="recordingStatus" style="display: none;">
+                                        <div class="d-flex align-items-center justify-content-center gap-3">
+                                            <div class="recording-wave">
+                                                <span></span><span></span><span></span><span></span>
+                                            </div>
+                                            <span class="text-danger fw-semibold">
+                                                <i class="fas fa-circle fa-xs me-2"></i>Recording...
+                                            </span>
+                                            <button type="button" id="stopRecordBtn" class="btn btn-secondary rounded-pill px-4">
+                                                <i class="fas fa-stop me-2"></i>Stop
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="playbackControls" style="display: none;">
+                                        <audio id="audioPlayback" controls class="w-100 mb-3"></audio>
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <button type="button" id="reRecordBtn" class="btn btn-outline-warning rounded-pill px-4">
+                                                <i class="fas fa-redo me-2"></i>Record Again
+                                            </button>
+                                            <button type="button" id="useRecordingBtn" class="btn btn-success rounded-pill px-4">
+                                                <i class="fas fa-check me-2"></i>Use This Recording
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" name="voice_recording" id="voiceRecordingData">
+                                <small class="text-muted d-block mt-3">Record your symptoms directly - no need to upload a file</small>
+                                <div id="recordingHelp" class="mt-2">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Speak clearly about your symptoms, when they started, and how severe they are.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Hidden field for form validation -->
+                        <input type="hidden" name="has_recording" id="hasRecording" value="false">
+                        
+                        <!-- Submit Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary flex-grow-1 py-3 rounded-pill" id="submitBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Case
+                            </button>
+                            <a href="{% url 'patients:patient_dashboard' %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for recording wave animation -->
+<style>
+.voice-recording-container {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.voice-recording-container.recording-active {
+    border-color: #dc3545;
+    background: rgba(220, 53, 69, 0.05) !important;
+}
+
+.recording-wave {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    height: 30px;
+}
+
+.recording-wave span {
+    width: 4px;
+    height: 100%;
+    background-color: #dc3545;
+    display: inline-block;
+    animation: wave 1s ease-in-out infinite;
+}
+
+.recording-wave span:nth-child(1) { animation-delay: 0s; }
+.recording-wave span:nth-child(2) { animation-delay: 0.2s; }
+.recording-wave span:nth-child(3) { animation-delay: 0.4s; }
+.recording-wave span:nth-child(4) { animation-delay: 0.6s; }
+
+@keyframes wave {
+    0%, 100% {
+        height: 10px;
+    }
+    50% {
+        height: 30px;
+    }
+}
+
+.image-previews {
+    min-height: 50px;
+}
+</style>
+
+<!-- JavaScript for Voice Recording and Image Preview -->
+<!-- استبدل جزء JavaScript الخاص بالصوت بهذا الكود -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ========== IMAGE PREVIEW (كما هو) ==========
+    const imageInput = document.getElementById('imageInput');
+    const imagePreviews = document.getElementById('imagePreviews');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            imagePreviews.innerHTML = '';
+            const files = Array.from(e.target.files);
+            
+            files.forEach((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const preview = document.createElement('div');
+                        preview.className = 'col-4 col-md-3 mb-2';
+                        preview.innerHTML = `
+                            <div class="position-relative">
+                                <img src="${e.target.result}" class="img-fluid rounded-3 shadow-sm" style="height: 100px; width: 100%; object-fit: cover;">
+                                <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle remove-image" data-index="${index}">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+                        imagePreviews.appendChild(preview);
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            document.querySelectorAll('.remove-image').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const index = this.dataset.index;
+                    const dt = new DataTransfer();
+                    const files = imageInput.files;
+                    
+                    for (let i = 0; i < files.length; i++) {
+                        if (i != index) {
+                            dt.items.add(files[i]);
+                        }
+                    }
+                    
+                    imageInput.files = dt.files;
+                    this.closest('.col-4').remove();
+                });
+            });
+        });
+    }
+    
+    // ========== VOICE RECORDING (المعدل) ==========
+    let mediaRecorder;
+    let audioChunks = [];
+    let recordedBlob = null;
+    
+    const startBtn = document.getElementById('startRecordBtn');
+    const stopBtn = document.getElementById('stopRecordBtn');
+    const reRecordBtn = document.getElementById('reRecordBtn');
+    const useRecordingBtn = document.getElementById('useRecordingBtn');
+    const recordingStatus = document.getElementById('recordingStatus');
+    const playbackControls = document.getElementById('playbackControls');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const voiceRecordingData = document.getElementById('voiceRecordingData');
+    const hasRecording = document.getElementById('hasRecording');
+    const recordingContainer = document.querySelector('.voice-recording-container');
+    
+    // Request microphone permission
+    async function initRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+            
+            mediaRecorder.onstop = () => {
+                recordedBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const audioUrl = URL.createObjectURL(recordedBlob);
+                audioPlayback.src = audioUrl;
+                
+                // Convert blob to base64 for form submission
+                const reader = new FileReader();
+                reader.onloadend = function() {
+                    voiceRecordingData.value = reader.result;
+                    hasRecording.value = 'true';
+                    console.log('✅ Voice recording saved to hidden field');
+                };
+                reader.readAsDataURL(recordedBlob);
+                
+                // Show playback controls
+                recordingStatus.style.display = 'none';
+                playbackControls.style.display = 'block';
+                recordingContainer.classList.remove('recording-active');
+            };
+            
+            return true;
+        } catch (err) {
+            console.error('Microphone access error:', err);
+            alert('Unable to access microphone. Please check your microphone permissions.');
+            return false;
+        }
+    }
+    
+    // Start recording
+    startBtn.addEventListener('click', async () => {
+        if (!mediaRecorder) {
+            const success = await initRecording();
+            if (!success) return;
+        }
+        
+        audioChunks = [];
+        mediaRecorder.start();
+        
+        startBtn.style.display = 'none';
+        recordingStatus.style.display = 'block';
+        recordingContainer.classList.add('recording-active');
+    });
+    
+    // Stop recording
+    stopBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+            // Stop all tracks
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        }
+    });
+    
+    // Record again
+    reRecordBtn.addEventListener('click', async () => {
+        // Reset recording
+        audioChunks = [];
+        recordedBlob = null;
+        voiceRecordingData.value = '';
+        hasRecording.value = 'false';
+        audioPlayback.src = '';
+        
+        playbackControls.style.display = 'none';
+        startBtn.style.display = 'block';
+        
+        // Reinitialize
+        mediaRecorder = null;
+        const success = await initRecording();
+        if (!success) return;
+    });
+    
+    // Use this recording
+    useRecordingBtn.addEventListener('click', () => {
+        if (recordedBlob) {
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.className = 'alert alert-success alert-dismissible fade show mt-3';
+            successMsg.innerHTML = `
+                <i class="fas fa-check-circle me-2"></i>
+                Voice recording saved! You can now submit your case.
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            recordingContainer.appendChild(successMsg);
+            
+            // Disable record buttons
+            reRecordBtn.disabled = true;
+            useRecordingBtn.disabled = true;
+            
+            setTimeout(() => {
+                successMsg.remove();
+            }, 3000);
+        }
+    });
+    
+    // ========== FORM VALIDATION (المعدل) ==========
+    const form = document.getElementById('caseForm');
+    const textDescription = document.querySelector('#id_text_description');
+    
+    form.addEventListener('submit', function(e) {
+        const hasText = textDescription && textDescription.value.trim();
+        const hasImages = imageInput && imageInput.files.length > 0;
+        const hasVoice = hasRecording.value === 'true';
+        
+        console.log('Form validation:', { hasText, hasImages, hasVoice });
+        
+        if (!hasText && !hasImages && !hasVoice) {
+            e.preventDefault();
+            alert('⚠️ Please provide at least one of: symptoms description, image, or voice recording.');
+        }
+    });
+});
+</script>
+{% endblock %}

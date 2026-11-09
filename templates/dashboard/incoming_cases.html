@@ -1,0 +1,177 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Incoming Cases - Doctor Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="fw-bold">
+                    <i class="fas fa-inbox text-primary me-2"></i>
+                    Incoming Cases
+                </h2>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary rounded-pill" onclick="window.location.reload()">
+                        <i class="fas fa-sync-alt me-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-body p-3">
+                    <div class="d-flex flex-wrap gap-3 align-items-center">
+                        <span class="fw-semibold">Filter by priority:</span>
+                        <div class="btn-group" role="group">
+                            <a href="?priority=all&sort={{ sort }}" class="btn btn-sm {% if priority == 'all' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-pill px-4">
+                                All
+                            </a>
+                            <a href="?priority=red&sort={{ sort }}" class="btn btn-sm {% if priority == 'red' %}btn-danger{% else %}btn-outline-danger{% endif %} rounded-pill px-4">
+                                <span class="triage-indicator red me-1"></span> Red
+                            </a>
+                            <a href="?priority=yellow&sort={{ sort }}" class="btn btn-sm {% if priority == 'yellow' %}btn-warning{% else %}btn-outline-warning{% endif %} rounded-pill px-4">
+                                <span class="triage-indicator yellow me-1"></span> Yellow
+                            </a>
+                            <a href="?priority=green&sort={{ sort }}" class="btn btn-sm {% if priority == 'green' %}btn-success{% else %}btn-outline-success{% endif %} rounded-pill px-4">
+                                <span class="triage-indicator green me-1"></span> Green
+                            </a>
+                        </div>
+                        
+                        <span class="fw-semibold ms-3">Sort by:</span>
+                        <select class="form-select form-select-sm w-auto rounded-pill" onchange="window.location.href=this.value">
+                            <option value="?sort=newest&priority={{ priority }}" {% if sort == 'newest' %}selected{% endif %}>Newest first</option>
+                            <option value="?sort=oldest&priority={{ priority }}" {% if sort == 'oldest' %}selected{% endif %}>Oldest first</option>
+                            <option value="?sort=priority&priority={{ priority }}" {% if sort == 'priority' %}selected{% endif %}>Priority</option>
+                        </select>
+                        
+                        <div class="ms-auto">
+                            <span class="text-muted small">Showing {{ cases.start_index }}-{{ cases.end_index }} of {{ total_cases }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cases List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 rounded-4 shadow-sm">
+                <div class="card-body p-4">
+                    {% if cases %}
+                        {% for item in cases %}
+                        <div class="case-card {% if item.triage_result %}{{ item.triage_result.suggested_level }}{% else %}yellow{% endif %}" 
+                             onclick="window.location.href='{% url 'dashboard:case_detail' item.id %}'">
+                            <div class="row align-items-center">
+                                <div class="col-lg-1">
+                                    <span class="priority-badge {% if item.triage_result %}{{ item.triage_result.suggested_level }}{% else %}yellow{% endif %}">
+                                        {% if item.triage_result %}
+                                            {{ item.triage_result.get_suggested_level_display }}
+                                        {% else %}
+                                            Pending
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-circle fa-2x text-primary me-2"></i>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">{{ item.case.patient.get_full_name|default:item.case.patient.username }}</h6>
+                                            <small class="text-muted">ID: {{ item.case.patient.id }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="case-time">
+                                        <i class="far fa-clock me-1"></i>
+                                        {{ item.case.created_at|date:"M d, Y - g:i A" }}
+                                    </div>
+                                </div>
+                                <div class="col-lg-3">
+                                    <p class="text-truncate mb-0">{{ item.case.text_description|truncatechars:50 }}</p>
+                                </div>
+                                <div class="col-lg-2">
+                                    <div class="d-flex gap-2">
+                                        {% if item.case.images.count > 0 %}
+                                        <span class="badge bg-light text-dark" title="{{ item.case.images.count }} images">
+                                            <i class="fas fa-image text-primary me-1"></i>{{ item.case.images.count }}
+                                        </span>
+                                        {% endif %}
+                                        {% if item.case.voice_recording %}
+                                        <span class="badge bg-light text-dark" title="Voice recording">
+                                            <i class="fas fa-microphone text-primary"></i>
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-lg-2 text-end">
+                                    <div class="d-flex align-items-center justify-content-end gap-2">
+                                        {% if item.triage_result %}
+                                        <span class="badge bg-primary rounded-pill">
+                                            AI Score: {{ item.triage_result.composite_score|floatformat:0 }}%
+                                        </span>
+                                        {% endif %}
+                                        <i class="fas fa-chevron-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        
+                        <!-- Pagination -->
+                        {% if cases.has_other_pages %}
+                        <nav class="mt-4">
+                            <ul class="pagination justify-content-center">
+                                {% if cases.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill mx-1" href="?page={{ cases.previous_page_number }}{% if priority %}&priority={{ priority }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                                        <i class="fas fa-chevron-left"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                
+                                {% for i in cases.paginator.page_range %}
+                                    {% if cases.number == i %}
+                                    <li class="page-item active">
+                                        <span class="page-link rounded-pill mx-1">{{ i }}</span>
+                                    </li>
+                                    {% elif i > cases.number|add:'-3' and i < cases.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link rounded-pill mx-1" href="?page={{ i }}{% if priority %}&priority={{ priority }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">{{ i }}</a>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if cases.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link rounded-pill mx-1" href="?page={{ cases.next_page_number }}{% if priority %}&priority={{ priority }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                                        <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                        {% endif %}
+                        
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-inbox fa-4x text-muted opacity-25"></i>
+                            </div>
+                            <h5 class="fw-bold mb-2">No Incoming Cases</h5>
+                            <p class="text-muted">All cases have been reviewed. Check back later.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

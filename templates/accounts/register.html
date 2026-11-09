@@ -1,0 +1,397 @@
+<!-- templates/accounts/register.html -->
+{% extends 'base.html' %}
+
+{% block title %}Register - Masarak{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Main Card -->
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <!-- Header with gradient -->
+                <div class="card-header bg-gradient-primary text-white text-center py-4 border-0">
+                    <div class="mb-3">
+                        <i class="fas fa-user-plus fa-4x"></i>
+                    </div>
+                    <h3 class="fw-bold mb-2">Create Your Account</h3>
+                    <p class="mb-0 opacity-75">Join Masarak for better healthcare access</p>
+                </div>
+                
+                <!-- Progress Steps -->
+                <div class="px-4 pt-4">
+                    <div class="progress-steps">
+                        <div class="step active">
+                            <div class="step-number">1</div>
+                            <div class="step-text small">Personal Info</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-text small">Contact Details</div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-text small">Security</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Body -->
+                <div class="card-body p-4 p-lg-5">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                {% for error in form.non_field_errors %}
+                                    {{ error }}
+                                {% endfor %}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endif %}
+                        
+                        <!-- Section 1: Account Information -->
+                        <div class="section-title mb-4">
+                            <h5 class="fw-bold text-primary">
+                                <i class="fas fa-info-circle me-2"></i>Account Information
+                            </h5>
+                            <hr class="mt-2">
+                        </div>
+                        
+                        <div class="row g-3 mb-4">
+                            <!-- Username -->
+                            <div class="col-md-6">
+                                <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-user me-2 text-primary"></i>Username
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-user text-primary"></i>
+                                    </span>
+                                    {{ form.username }}
+                                </div>
+                                {% if form.username.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.username.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">{{ form.username.help_text|safe }}</small>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-envelope me-2 text-primary"></i>Email Address
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-envelope text-primary"></i>
+                                    </span>
+                                    {{ form.email }}
+                                </div>
+                                {% if form.email.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.email.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Section 2: Personal Information -->
+                        <div class="section-title mb-4">
+                            <h5 class="fw-bold text-primary">
+                                <i class="fas fa-id-card me-2"></i>Personal Information
+                            </h5>
+                            <hr class="mt-2">
+                        </div>
+                        
+                        <div class="row g-3 mb-4">
+                            <!-- Phone Number -->
+                            <div class="col-md-6">
+                                <label for="{{ form.phone_number.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-phone me-2 text-primary"></i>Phone Number
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-phone text-primary"></i>
+                                    </span>
+                                    {{ form.phone_number }}
+                                </div>
+                                {% if form.phone_number.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.phone_number.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- National ID -->
+                            <div class="col-md-6">
+                                <label for="{{ form.national_id.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-id-card me-2 text-primary"></i>National ID
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-id-card text-primary"></i>
+                                    </span>
+                                    {{ form.national_id }}
+                                </div>
+                                {% if form.national_id.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.national_id.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Date of Birth -->
+                            <div class="col-md-6">
+                                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-calendar me-2 text-primary"></i>Date of Birth
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-calendar text-primary"></i>
+                                    </span>
+                                    {{ form.date_of_birth }}
+                                </div>
+                                {% if form.date_of_birth.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.date_of_birth.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Section 3: Security -->
+                        <div class="section-title mb-4">
+                            <h5 class="fw-bold text-primary">
+                                <i class="fas fa-lock me-2"></i>Security
+                            </h5>
+                            <hr class="mt-2">
+                        </div>
+                        
+                        <div class="row g-3 mb-4">
+                            <!-- Password -->
+                            <div class="col-md-6">
+                                <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-key me-2 text-primary"></i>Password
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-lock text-primary"></i>
+                                    </span>
+                                    {{ form.password1 }}
+                                    <button class="btn btn-outline-secondary toggle-password1" type="button">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password1.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.password1.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                {% if form.password1.help_text %}
+                                    <div class="alert alert-info mt-2 small p-2">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        {{ form.password1.help_text|safe }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Confirm Password -->
+                            <div class="col-md-6">
+                                <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
+                                    <i class="fas fa-key me-2 text-primary"></i>Confirm Password
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i class="fas fa-lock text-primary"></i>
+                                    </span>
+                                    {{ form.password2 }}
+                                    <button class="btn btn-outline-secondary toggle-password2" type="button">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                {% if form.password2.errors %}
+                                    <div class="text-danger mt-2 small">
+                                        {% for error in form.password2.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="terms" required>
+                                <label class="form-check-label small" for="terms">
+                                    I agree to the <a href="#" class="text-primary text-decoration-none">Terms of Service</a> and 
+                                    <a href="#" class="text-primary text-decoration-none">Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Register Button -->
+                        <div class="d-grid mb-4">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill py-3 fw-semibold">
+                                <i class="fas fa-user-plus me-2"></i>Create Account
+                            </button>
+                        </div>
+                        
+                        <!-- Divider -->
+                        <div class="position-relative text-center mb-4">
+                            <hr class="bg-secondary opacity-25">
+                            <span class="position-absolute top-50 start-50 translate-middle px-3 bg-white text-muted small">
+                                Already have an account?
+                            </span>
+                        </div>
+                        
+                        <!-- Login Link -->
+                        <div class="text-center">
+                            <p class="text-muted mb-0">
+                                <a href="{% url 'accounts:login' %}" class="text-primary fw-semibold text-decoration-none">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Sign in here
+                                </a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add CSS for progress steps -->
+<style>
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 25px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    background: white;
+    padding: 0 15px;
+    text-align: center;
+}
+
+.step .step-number {
+    width: 50px;
+    height: 50px;
+    background: #e9ecef;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 8px;
+    font-weight: bold;
+    color: #6c757d;
+    transition: all 0.3s;
+}
+
+.step.active .step-number {
+    background: var(--primary-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.step.completed .step-number {
+    background: #28a745;
+    color: white;
+}
+
+.step .step-text {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.step.active .step-text {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+/* Form field styling */
+.form-control, .input-group-text {
+    border: 1px solid #dee2e6;
+    transition: all 0.3s;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.1);
+}
+
+/* Section title styling */
+.section-title h5 {
+    margin-bottom: 0;
+}
+
+.section-title hr {
+    border: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-color) 0%, transparent 100%);
+    opacity: 0.2;
+}
+</style>
+
+<!-- Add JavaScript for password toggles -->
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password 1
+    const togglePassword1 = document.querySelector('.toggle-password1');
+    const password1Input = document.querySelector('#id_password1');
+    
+    if (togglePassword1 && password1Input) {
+        togglePassword1.addEventListener('click', function() {
+            const type = password1Input.getAttribute('type') === 'password' ? 'text' : 'password';
+            password1Input.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Toggle password 2
+    const togglePassword2 = document.querySelector('.toggle-password2');
+    const password2Input = document.querySelector('#id_password2');
+    
+    if (togglePassword2 && password2Input) {
+        togglePassword2.addEventListener('click', function() {
+            const type = password2Input.getAttribute('type') === 'password' ? 'text' : 'password';
+            password2Input.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

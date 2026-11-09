@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Edit Case #{{ case.id }} - Masarak{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <a href="{% url 'patients:case_detail' case.id %}" class="btn btn-outline-secondary rounded-pill">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Case
+                </a>
+                <span class="badge bg-warning rounded-pill px-4 py-3">
+                    <i class="fas fa-edit me-2"></i>Editing Case #{{ case.id }}
+                </span>
+            </div>
+            
+            <!-- Edit Form Card -->
+            <div class="card border-0 rounded-4 shadow-lg">
+                <div class="card-header bg-gradient-primary text-white py-4 rounded-top-4">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle bg-white bg-opacity-25 p-3 me-3">
+                            <i class="fas fa-edit fa-3x"></i>
+                        </div>
+                        <div>
+                            <h4 class="fw-bold mb-1">Edit Case</h4>
+                            <p class="mb-0 opacity-75">Update your case information</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-5">
+                    <form method="post" enctype="multipart/form-data" id="editCaseForm">
+                        {% csrf_token %}
+                        
+                        <!-- Warning Alert -->
+                        <div class="alert alert-warning rounded-4 mb-4">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Note:</strong> You can only edit cases that haven't been processed yet.
+                        </div>
+                        
+                        <!-- Description Field -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-edit me-2 text-primary"></i>Symptoms Description
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.text_description }}
+                            {% if form.text_description.errors %}
+                                <div class="text-danger mt-2">
+                                    {{ form.text_description.errors }}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">{{ form.text_description.help_text }}</small>
+                        </div>
+                        
+                        <!-- Existing Images -->
+                        {% if existing_images %}
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-image me-2 text-primary"></i>Current Images
+                            </label>
+                            <div class="row g-3">
+                                {% for image in existing_images %}
+                                <div class="col-md-3 col-6">
+                                    <div class="position-relative">
+                                        <img src="{{ image.image.url }}" alt="Case image" class="img-fluid rounded-3" style="height: 100px; width: 100%; object-fit: cover;">
+                                        <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle delete-image" 
+                                                data-image-id="{{ image.id }}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Add New Images -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-plus-circle me-2 text-primary"></i>Add New Images
+                            </label>
+                            
+                            <!-- Image upload area -->
+                            <div class="upload-area border rounded-4 p-4 text-center" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <p class="mb-2">Drag & drop new images here or <strong class="text-primary">browse</strong></p>
+                                <p class="text-muted small mb-3">Supported: JPG, PNG, GIF, BMP (Max 5MB each)</p>
+                                <input type="file" name="images" id="imageInput" multiple accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-outline-primary rounded-pill" id="browseButton">
+                                    <i class="fas fa-folder-open me-2"></i>Browse Files
+                                </button>
+                                
+                                <!-- Preview area -->
+                                <div class="image-previews row g-2 mt-4" id="imagePreviews"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Voice Recording -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-microphone me-2 text-primary"></i>Voice Recording
+                            </label>
+                            
+                            {% if case.voice_recording %}
+                            <div class="bg-light rounded-4 p-3 mb-3">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <i class="fas fa-file-audio text-primary me-2"></i>
+                                        Current recording: 
+                                        <a href="{{ case.voice_recording.url }}" target="_blank" class="text-primary">
+                                            {{ case.voice_recording.name|slice:"17:" }}
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" id="removeRecording">
+                                            <i class="fas fa-trash me-1"></i>Remove
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {{ form.voice_recording }}
+                            <small class="text-muted">{{ form.voice_recording.help_text }}</small>
+                        </div>
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-3 mt-5">
+                            <button type="submit" class="btn btn-primary flex-grow-1 py-3 rounded-pill">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                            <a href="{% url 'patients:case_detail' case.id %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Image upload preview
+    const imageInput = document.getElementById('imageInput');
+    const browseButton = document.getElementById('browseButton');
+    const uploadArea = document.getElementById('uploadArea');
+    const imagePreviews = document.getElementById('imagePreviews');
+    
+    if (browseButton && imageInput) {
+        browseButton.addEventListener('click', function() {
+            imageInput.click();
+        });
+    }
+    
+    if (uploadArea && imageInput) {
+        uploadArea.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'I') {
+                imageInput.click();
+            }
+        });
+        
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('bg-light');
+        });
+        
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('bg-light');
+        });
+        
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('bg-light');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && imageInput) {
+                imageInput.files = files;
+                updatePreview();
+            }
+        });
+    }
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', updatePreview);
+    }
+    
+    function updatePreview() {
+        imagePreviews.innerHTML = '';
+        const files = Array.from(imageInput.files);
+        
+        files.forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'col-4 col-md-3 mb-2';
+                    preview.innerHTML = `
+                        <div class="position-relative">
+                            <img src="${e.target.result}" class="img-fluid rounded-3 shadow-sm" style="height: 100px; width: 100%; object-fit: cover;">
+                            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 rounded-circle remove-preview" data-index="${index}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    imagePreviews.appendChild(preview);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        document.querySelectorAll('.remove-preview').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const index = this.dataset.index;
+                const dt = new DataTransfer();
+                const files = imageInput.files;
+                
+                for (let i = 0; i < files.length; i++) {
+                    if (i != index) {
+                        dt.items.add(files[i]);
+                    }
+                }
+                
+                imageInput.files = dt.files;
+                this.closest('.col-4').remove();
+            });
+        });
+    }
+    
+    // Remove recording (simulated)
+    const removeRecording = document.getElementById('removeRecording');
+    if (removeRecording) {
+        removeRecording.addEventListener('click', function() {
+            if (confirm('Remove current voice recording? This action cannot be undone.')) {
+                alert('Recording removal feature coming soon!');
+            }
+        });
+    }
+    
+    // Delete existing images (simulated)
+    document.querySelectorAll('.delete-image').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (confirm('Delete this image?')) {
+                alert('Image deletion feature coming soon!');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+}
+
+.upload-area {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px dashed #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.upload-area:hover {
+    border-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+.upload-area.bg-light {
+    background-color: #e9ecef !important;
+}
+
+.image-previews {
+    min-height: 50px;
+}
+</style>
+{% endblock %}

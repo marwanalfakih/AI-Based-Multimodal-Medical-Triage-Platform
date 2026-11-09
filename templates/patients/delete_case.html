@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Case #{{ case.id }} - Masarak{% endblock %}
+
+{% block content %}
+<div class="container py-5 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <!-- Delete Confirmation Card -->
+            <div class="card border-0 rounded-4 shadow-lg border-danger">
+                <div class="card-header bg-danger text-white text-center py-4 rounded-top-4">
+                    <i class="fas fa-exclamation-triangle fa-4x mb-3"></i>
+                    <h4 class="fw-bold mb-2">Delete Case</h4>
+                    <p class="mb-0 opacity-75">This action cannot be undone</p>
+                </div>
+                
+                <div class="card-body p-5">
+                    <!-- Warning Alert -->
+                    <div class="alert alert-warning rounded-4 mb-4">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Warning:</strong> You are about to permanently delete this case.
+                    </div>
+                    
+                    <!-- Case Summary -->
+                    <div class="bg-light rounded-4 p-4 mb-4">
+                        <h6 class="fw-bold mb-3">Case Summary</h6>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Case ID</small>
+                            <span class="fw-semibold">#{{ case.id }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Submitted On</small>
+                            <span class="fw-semibold">{{ case.created_at|date:"F d, Y - g:i A" }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted d-block">Description</small>
+                            <p class="mb-0">{{ case.text_description|truncatechars:150 }}</p>
+                        </div>
+                        
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Images</small>
+                                <span class="fw-semibold">{{ case.images.count }} file(s)</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Voice Recording</small>
+                                <span class="fw-semibold">{% if case.voice_recording %}Yes{% else %}No{% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- What will be deleted -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3">This will permanently delete:</h6>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                The case record and all its information
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                All {{ case.images.count }} uploaded image(s)
+                            </li>
+                            {% if case.voice_recording %}
+                            <li class="mb-2">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                The voice recording
+                            </li>
+                            {% endif %}
+                            <li class="mb-2">
+                                <i class="fas fa-times-circle text-danger me-2"></i>
+                                Any associated analysis results
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Confirmation Form -->
+                    <form method="post" onsubmit="return confirmFinal()">
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">
+                                <i class="fas fa-keyboard me-2 text-primary"></i>
+                                Type <strong class="text-danger">DELETE</strong> to confirm:
+                            </label>
+                            <input type="text" 
+                                   class="form-control form-control-lg rounded-pill" 
+                                   id="confirmText" 
+                                   placeholder="DELETE"
+                                   pattern="DELETE"
+                                   required>
+                        </div>
+                        
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-danger flex-grow-1 py-3 rounded-pill" id="deleteBtn" disabled>
+                                <i class="fas fa-trash-alt me-2"></i>Permanently Delete Case
+                            </button>
+                            <a href="{% url 'patients:case_detail' case.id %}" class="btn btn-outline-secondary px-4 rounded-pill">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Security Note -->
+            <div class="text-center mt-4">
+                <small class="text-muted">
+                    <i class="fas fa-shield-alt me-1"></i>
+                    This action is irreversible and will be logged for security purposes.
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmFinal() {
+    return confirm('⚠️ FINAL WARNING: Are you absolutely sure you want to permanently delete this case? This cannot be undone!');
+}
+
+// Enable delete button only when DELETE is typed
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput = document.getElementById('confirmText');
+    const deleteBtn = document.getElementById('deleteBtn');
+    
+    if (confirmInput && deleteBtn) {
+        confirmInput.addEventListener('input', function() {
+            deleteBtn.disabled = this.value !== 'DELETE';
+        });
+    }
+});
+</script>
+
+<style>
+.bg-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333) !important;
+}
+
+.form-control:focus {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220,53,69,0.25);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(220,53,69,0.3);
+}
+
+.btn-danger:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>
+{% endblock %}

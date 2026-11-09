@@ -1,0 +1,5 @@
+pip install ultralytics
+pip install grad-cam
+pip install transformers
+pip install gradio
+pip install pytorch-grad-cam

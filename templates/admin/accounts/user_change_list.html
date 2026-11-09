@@ -1,0 +1,26 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+{{ block.super }}
+<div class="module" style="margin: 15px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <span style="font-weight: bold; color: #2c3e50;">🔧 Quick Actions:</span>
+        <a href="{% url 'admin:accounts_specialization_add' %}" class="button"
+            style="background: #28a745; color: white; padding: 6px 15px; border-radius: 4px; text-decoration: none;">
+            ➕ Add Specialization
+        </a>
+        <a href="{% url 'admin:accounts_user_add' %}" class="button"
+            style="background: #17a2b8; color: white; padding: 6px 15px; border-radius: 4px; text-decoration: none;">
+            👤 Add New User
+        </a>
+        <a href="?user_type=doctor" class="button"
+            style="background: #6c5ce7; color: white; padding: 6px 15px; border-radius: 4px; text-decoration: none;">
+            👨‍⚕️ Filter: Doctors
+        </a>
+        <a href="?user_type=patient" class="button"
+            style="background: #00cec9; color: white; padding: 6px 15px; border-radius: 4px; text-decoration: none;">
+            👤 Filter: Patients
+        </a>
+    </div>
+</div>
+{% endblock %}
