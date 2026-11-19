@@ -19,9 +19,7 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
-ذذ
 
-## License
 MIT — see LICENSE for details.
 
 ## License
